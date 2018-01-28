@@ -2,7 +2,7 @@
     "name": "r-lsp",
     "displayName": "R LSP Client",
     "description": "R language support for VS Code, powered by the R language server.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "license": "SEE LICENSE IN LICENSE",
     "publisher": "Ikuyadeu",
     "icon": "images/Rlogo.png",
