@@ -1,0 +1,39 @@
+{
+    "name": "vscode-r-lsp",
+    "displayName": "R LSP Client",
+    "description": "",
+    "version": "0.0.1",
+    "publisher": "Ikuyadeu",
+    "icon": "images/Rlogo.png",
+    "engines": {
+        "vscode": "^1.19.0"
+    },
+    "license": "MIT",
+    "categories": [
+        "Languages"
+    ],
+    "activationEvents": [
+        "onLanguage:r"
+    ],
+    "main": "./out/src/extension",
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "@types/mocha": "^2.2.32",
+        "@types/node": "^8.0.31",
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.10",
+        "tslint": "^5.9.1"
+    },
+    "dependencies": {
+        "path": "^0.12.7",
+        "vscode-languageclient": "^3.5.0"
+    },
+    "extensionDependencies": [
+        "Ikuyadeu.r"
+    ]
+}
