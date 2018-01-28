@@ -9,7 +9,7 @@ export function activate(context: ExtensionContext) {
 	// The server is implemented in node
 	// let serverModule = context.asAbsolutePath(path.join('R'));
 	// The debug options for the server
-	let runArgs: ["--quiet", "--slave", "-e", "languageserver::run()"];	
+	let runArgs: ["--quiet", "--slave", "-e", "languageserver::run(debug=T)"];	
 	let debugArgs = ["--quiet", "--slave", "-e", "languageserver::run(debug=T)"];
 
 	// If the extension is launched in debug mode then the debug server options are used
