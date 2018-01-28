@@ -1,7 +1,7 @@
 {
     "name": "r-lsp",
     "displayName": "R LSP Client",
-    "description": "",
+    "description": "R language support for VS Code, powered by the R language server.",
     "version": "0.0.1",
     "license": "SEE LICENSE IN LICENSE",
     "publisher": "Ikuyadeu",
