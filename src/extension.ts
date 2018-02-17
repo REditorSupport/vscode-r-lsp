@@ -2,24 +2,42 @@
 
 import * as path from 'path';
 
-import { workspace, ExtensionContext } from 'vscode';
+import { workspace, ExtensionContext, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { Socket, createServer } from 'net';
+const cp = require("child_process");
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
 	// let serverModule = context.asAbsolutePath(path.join('R'));
 	// The debug options for the server
-	let runArgs: ["--quiet", "--slave", "-e", "languageserver::run(debug=T)"];	
-	let debugArgs = ["--quiet", "--slave", "-e", "languageserver::run(debug=T)"];
+	const serverOptions: ServerOptions = function () {
+		return new Promise((resolve, reject) => {
+			let childProcess
+			const server = createServer(socket => {
+				// When the language server connects, grab socket, stop listening and resolve
+				// this.socket = socket
+				server.close()
+				resolve({ reader: socket, writer: socket })
+			})
 
-	// If the extension is launched in debug mode then the debug server options are used
-	// Otherwise the run options are used
-	let serverOptions: ServerOptions = {
-		run : { command: "R", args: debugArgs },
-		debug: { command: "R", args: debugArgs }
+			server.listen(0, '127.0.0.1', () => {
+				let port = server.address().port
+				let runArgs = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`];
+				let debugArgs = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE, port=${port})`];
+				// Once we have a port assigned spawn the Language Server with the port
+				childProcess = cp.spawn("R", runArgs)
+				childProcess.stderr.on('data', (chunk: Buffer) => {
+					console.error(chunk + '');
+				});
+				childProcess.stdout.on('data', (chunk: Buffer) => {
+					console.log(chunk + '');
+				});
+				return childProcess
+			})
+		})
 	}
 
-	// Options to control the language client
 	let clientOptions: LanguageClientOptions = {
 		// Register the server for plain text documents
 		documentSelector: [{scheme: 'file', language: 'r'}],

@@ -1,7 +1,7 @@
 {
     "name": "r-lsp",
     "displayName": "R LSP Client",
-    "description": "R language support for VS Code, powered by the R language server.",
+    "description": "R language support for VS Code, powered by the R Language Server Protocol.",
     "version": "0.0.4",
     "license": "SEE LICENSE IN LICENSE",
     "publisher": "Ikuyadeu",
@@ -44,9 +44,7 @@
     },
     "dependencies": {
         "path": "^0.12.7",
+        "child_process": "^1.0.2",
         "vscode-languageclient": "^3.5.0"
-    },
-    "extensionDependencies": [
-        "Ikuyadeu.r"
-    ]
+    }
 }
