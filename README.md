@@ -5,16 +5,14 @@ R language support for [VS Code](https://code.visualstudio.com/), powered by the
 ## Requirements
 
 `vscode-r-lsp` requires the [R Language Server](https://github.com/REditorSupport/languageserver).
-Install the development version with
-
+It can be easily installed via CRAN
 ```r
-remotes::install_github("REditorSupport/languageserver")
+install.packages("languageserver")
 ```
 
-If you don't have [remotes](https://github.com/r-lib/remotes) please install it
-
+The development version can be installed by
 ```r
-source("https://install-github.me/r-lib/remotes")
+source("https://install-github.me/REditorSupport/languageserver")
 ```
 
 ## License
