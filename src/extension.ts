@@ -26,7 +26,7 @@ export function activate(context: ExtensionContext) {
 				let runArgs = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`];
 				let debugArgs = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE, port=${port})`];
 				// Once we have a port assigned spawn the Language Server with the port
-				childProcess = cp.spawn("R", runArgs)
+				childProcess = cp.spawn(getRpath(), runArgs)
 				childProcess.stderr.on('data', (chunk: Buffer) => {
 					console.error(chunk + '');
 				});
@@ -56,4 +56,19 @@ export function activate(context: ExtensionContext) {
 	// Push the disposable to the context's subscriptions so that the
 	// client can be deactivated on extension deactivation
 	context.subscriptions.push(disposable);
+}
+
+export let config = workspace.getConfiguration("r");
+
+export function getRpath() {
+    if (process.platform === "win32") {
+        return config.get("rterm.windows") as string;
+    } else if (process.platform === "darwin") {
+        return config.get("rterm.mac") as string;
+    } else if ( process.platform === "linux") {
+        return config.get("rterm.linux") as string;
+    } else {
+        window.showErrorMessage(process.platform + " can't use R");
+        return "";
+    }
 }
