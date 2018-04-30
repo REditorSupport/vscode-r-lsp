@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.7
+
+add `r.rpath.lsp` to use other R.exe file
+
 ## 0.0.6
 
 languageserver is now on CRAN
