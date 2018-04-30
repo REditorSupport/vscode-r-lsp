@@ -1,50 +1,63 @@
 {
-    "name": "r-lsp",
-    "displayName": "R LSP Client",
-    "description": "R language support for VS Code, powered by the R Language Server Protocol.",
-    "version": "0.0.6",
-    "license": "SEE LICENSE IN LICENSE",
-    "publisher": "Ikuyadeu",
-    "icon": "images/Rlogo.png",
-    "engines": {
-        "vscode": "^1.19.0"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/REditorSupport/vscode-r-lsp"
-    },
-    "bugs": {
-        "url": "https://github.com/REditorSupport/vscode-r-lsp/issues"
-    },
-    "categories": [
-        "Languages",
-        "Linters",
-        "Other"
-    ],
-    "keywords": [
-        "R",
-        "R language"
-    ],
-    "activationEvents": [
-        "onLanguage:r"
-    ],
-    "main": "./out/src/extension",
-    "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "@types/mocha": "^2.2.32",
-        "@types/node": "^8.0.31",
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.10",
-        "tslint": "^5.9.1"
-    },
-    "dependencies": {
-        "path": "^0.12.7",
-        "child_process": "^1.0.2",
-        "vscode-languageclient": "^3.5.0"
+  "name": "r-lsp",
+  "displayName": "R LSP Client",
+  "description": "R language support for VS Code, powered by the R Language Server Protocol.",
+  "version": "0.0.6",
+  "license": "SEE LICENSE IN LICENSE",
+  "publisher": "Ikuyadeu",
+  "icon": "images/Rlogo.png",
+  "engines": {
+    "vscode": "^1.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/REditorSupport/vscode-r-lsp"
+  },
+  "bugs": {
+    "url": "https://github.com/REditorSupport/vscode-r-lsp/issues"
+  },
+  "categories": [
+    "Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "R",
+    "R language"
+  ],
+  "activationEvents": [
+    "onLanguage:r"
+  ],
+  "main": "./out/src/extension",
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "r",
+      "properties": {
+        "r.rpath.lsp": {
+          "type": "string",
+          "default": "",
+          "description": "R.exe path for Language Server"
+        }
+      }
     }
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^8.0.31",
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.10",
+    "tslint": "^5.9.1"
+  },
+  "dependencies": {
+    "path": "^0.12.7",
+    "child_process": "^1.0.2",
+    "vscode-languageclient": "^3.5.0"
+  }
 }

@@ -61,6 +61,11 @@ export function activate(context: ExtensionContext) {
 export let config = workspace.getConfiguration("r");
 
 export function getRpath() {
+	let path = config.get("rpath.lsp") as string;
+    if (path !== "") {
+        return path;
+	}
+
     if (process.platform === "win32") {
         return config.get("rterm.windows") as string;
     } else if (process.platform === "darwin") {
