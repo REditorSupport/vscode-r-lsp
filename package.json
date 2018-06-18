@@ -4,7 +4,7 @@
   "description": "R language support for VS Code, powered by the R Language Server Protocol.",
   "version": "0.0.7",
   "license": "SEE LICENSE IN LICENSE",
-  "publisher": "Ikuyadeu",
+  "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
   "engines": {
     "vscode": "^1.19.0"
