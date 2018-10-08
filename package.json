@@ -17,7 +17,7 @@
     "url": "https://github.com/REditorSupport/vscode-r-lsp/issues"
   },
   "categories": [
-    "Languages",
+    "Programming Languages",
     "Linters",
     "Other"
   ],
@@ -56,8 +56,7 @@
     "tslint": "^5.9.1"
   },
   "dependencies": {
-    "path": "^0.12.7",
     "child_process": "^1.0.2",
-    "vscode-languageclient": "^3.5.0"
+    "vscode-languageclient": "^5.1.0"
   }
 }

@@ -1,11 +1,11 @@
 'use strict';
 
-import * as path from 'path';
-
 import { workspace, ExtensionContext, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 import { Socket, createServer } from 'net';
 const cp = require("child_process");
+
+let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
@@ -42,20 +42,20 @@ export function activate(context: ExtensionContext) {
 		// Register the server for plain text documents
 		documentSelector: [{scheme: 'file', language: 'r'}],
 		synchronize: {
-			// Synchronize the setting section 'lspSample' to the server
-			configurationSection: 'rlangsvr',
 			// Notify the server about file changes to '.clientrc files contain in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/*.r')
 		}
 	}
 
 	// Create the language client and start the client.
-	let languageClient = new LanguageClient('rlangsvr', 'Language Server R', serverOptions, clientOptions);
-	let disposable = languageClient.start();
+	client = new LanguageClient(
+		'rlangsvr',
+		'Language Server R',
+		serverOptions,
+		clientOptions);
 
-	// Push the disposable to the context's subscriptions so that the
-	// client can be deactivated on extension deactivation
-	context.subscriptions.push(disposable);
+	// Start the client. This will also launch the server
+	client.start();
 }
 
 export let config = workspace.getConfiguration("r");
@@ -76,4 +76,10 @@ export function getRpath() {
         window.showErrorMessage(process.platform + " can't use R");
         return "";
     }
+}
+export function deactivate(): Thenable<void> {
+    if (!client) {
+        return undefined;
+    }
+    return client.stop();
 }
