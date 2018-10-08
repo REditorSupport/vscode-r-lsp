@@ -2,7 +2,7 @@
   "name": "r-lsp",
   "displayName": "R LSP Client",
   "description": "R language support for VS Code, powered by the R Language Server Protocol.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
@@ -49,11 +49,11 @@
     }
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^8.0.31",
-    "typescript": "^2.6.1",
-    "vscode": "^1.1.10",
-    "tslint": "^5.9.1"
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.11.4",
+    "typescript": "^3.1.1",
+    "vscode": "^1.1.21",
+    "tslint": "^5.11.0"
   },
   "dependencies": {
     "child_process": "^1.0.2",
