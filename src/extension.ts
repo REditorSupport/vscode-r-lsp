@@ -22,17 +22,19 @@ export function activate(context: ExtensionContext) {
             });
 
             server.listen(0, "127.0.0.1", () => {
-                const port = server.address() as AddressInfo;
+                const port = (server.address() as AddressInfo).port;
                 const runArgs = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`];
-                const debugArgs = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE, port=${port})`];
-                // Once we have a port assigned spawn the Language Server with the port
+                // const debugArgs = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE, port=${port})`];
+                            // Once we have a port assigned spawn the Language Server with the port
                 childProcess = cp.spawn(getRpath(), runArgs);
                 childProcess.stderr.on("data", (chunk: Buffer) => {
-                window.showErrorMessage(chunk + "");
+                    // tslint:disable-next-line:no-console
+                    console.error(chunk + "");
+                    // window.showErrorMessage(chunk + "");
                 });
                 childProcess.stdout.on("data", (chunk: Buffer) => {
-                window.showInformationMessage(chunk + "");
-
+                    // tslint:disable-next-line:no-console
+                    console.error(chunk + "");
                 });
                 return childProcess;
             });
@@ -41,7 +43,7 @@ export function activate(context: ExtensionContext) {
 
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
-        documentSelector: [{scheme: "file", language: "r"}],
+        documentSelector: [{scheme: "file", language: "r"}, {scheme: "file", language: "rmd"}],
         synchronize: {
             // Notify the server about file changes to '.clientrc files contain in the workspace
             fileEvents: workspace.createFileSystemWatcher("**/*.r"),
