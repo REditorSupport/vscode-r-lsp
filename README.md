@@ -17,7 +17,6 @@ The development version can be installed by
 source("https://install-github.me/REditorSupport/languageserver")
 ```
 
-Also, please set the `r.rpath.lsp` to use other R.exe for `r.rterm.xxx`
 
 ## License
 
