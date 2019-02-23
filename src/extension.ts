@@ -7,12 +7,12 @@ import * as url from 'url';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
-    const config = vscode.workspace.getConfiguration('R');
+    const config = vscode.workspace.getConfiguration('r');
     var path = config.get("lsp.path") as string;
-    if (path === "") {
+    if (path == "") {
         path = "R";
     }
-
+    console.log(path)
     var debug = config.get("lsp.debug");
 
     let client: LanguageClient;
