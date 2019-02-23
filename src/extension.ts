@@ -8,12 +8,12 @@ import * as url from 'url';
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     const config = vscode.workspace.getConfiguration('R');
-    var path = config.get("LSP.Path") as string;
+    var path = config.get("lsp.path") as string;
     if (path === "") {
         path = "R";
     }
 
-    var debug = config.get("LSP.Debug");
+    var debug = config.get("lsp.debug");
 
     let client: LanguageClient;
 

@@ -40,12 +40,12 @@
       "type": "object",
       "title": "R",
       "properties": {
-        "R.LSP.Path": {
+        "r.lsp.path": {
           "type": "string",
           "default": "",
-          "description": "Path to R binary for Language Server"
+          "description": "Path to R binary for launching Language Server"
         },
-        "R.LSP.Debug": {
+        "r.lsp.debug": {
           "type": "boolean",
           "default": false,
           "description": "Debug R LSP"
