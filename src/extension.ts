@@ -73,8 +73,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         synchronize: {
             // Synchronize the setting section 'r' to the server
             configurationSection: 'r',
-            // Notify the server about changes to PHP files in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.php')
+            // Notify the server about changes to R files in the workspace
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.r')
         }
     };
 
