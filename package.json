@@ -40,15 +40,20 @@
       "type": "object",
       "title": "R",
       "properties": {
-        "r.lsp.path": {
+        "r.languageserver.path": {
           "type": "string",
           "default": "",
           "description": "Path to R binary for launching Language Server"
         },
-        "r.lsp.debug": {
+        "r.languageserver.debug": {
           "type": "boolean",
           "default": false,
-          "description": "Debug R LSP"
+          "description": "Debug R Language Server"
+        },
+        "r.languageserver.diagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Diagnostics"
         }
       }
     }

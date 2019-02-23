@@ -8,12 +8,12 @@ import * as url from 'url';
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     const config = vscode.workspace.getConfiguration('r');
-    var path = config.get("lsp.path") as string;
+    var path = config.get("languageserver.path") as string;
     if (path == "") {
         path = "R";
     }
     console.log(path)
-    var debug = config.get("lsp.debug");
+    var debug = config.get("languageserver.debug");
 
     let client: LanguageClient;
 
@@ -72,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         },
         synchronize: {
             // Synchronize the setting section 'r' to the server
-            configurationSection: 'r',
+            configurationSection: 'r.languageserver',
             // Notify the server about changes to R files in the workspace
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.r')
         }
