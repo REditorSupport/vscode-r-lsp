@@ -1,4 +1,4 @@
-# VS Code R by LSP
+# R-LSP
 
 R language support for [VS Code](https://code.visualstudio.com/), powered by the [R language server](https://github.com/REditorSupport/languageserver).
 
