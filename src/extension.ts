@@ -4,16 +4,57 @@ import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
 import * as net from 'net';
 import * as url from 'url';
+import { existsSync } from 'fs';
+import * as winreg from "winreg";
+
+async function getRPath(config: vscode.WorkspaceConfiguration) {
+    var path = config.get("lsp.path") as string;
+    if (path && existsSync(path)) {
+        return path;
+    }
+
+    if (process.platform === "win32") {
+        try{
+            const key = new winreg({
+                hive: winreg.HKLM,
+                key: '\\Software\\R-Core\\R'
+            });
+            var rhome = await new Promise((c, e) =>
+                    key.get('InstallPath', (err, result) => err ? e(err) : c(result.value)));
+            console.log("found R in registry:", rhome)
+            path = rhome + "\\bin\\R.exe";
+        } catch (e) {
+            path = ""
+        }
+        if (path && existsSync(path)) {
+            return path;
+        }
+    }
+
+    // get path from vscode-r
+    if (process.platform === "win32") {
+        path = config.get("rterm.windows") as string;
+    } else if (process.platform === "darwin") {
+        path = config.get("rterm.mac") as string;
+    } else if (process.platform === "linux") {
+        path = config.get("rterm.linux") as string;
+    }
+    if (path && existsSync(path)) {
+        return path;
+    }
+
+    return "R";
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     const config = vscode.workspace.getConfiguration('r');
-    var path = config.get("lsp.path") as string;
-    if (path == "") {
-        path = "R";
-    }
-    console.log(path)
+
+    var path = await getRPath(config);
     var debug = config.get("lsp.debug");
+    if (debug) {
+        console.log(`R binary: ${path}`);
+    }
 
     let client: LanguageClient;
 
