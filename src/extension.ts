@@ -19,9 +19,12 @@ async function getRPath(config: vscode.WorkspaceConfiguration) {
                 hive: winreg.HKLM,
                 key: '\\Software\\R-Core\\R'
             });
-            var rhome = await new Promise((c, e) =>
-                    key.get('InstallPath', (err, result) => err ? e(err) : c(result.value)));
+            const item = await new Promise((c, e) =>
+                    key.get('InstallPath', (err, result) => err ? e(err) : c(result)));
+
+            const rhome = item.value;
             console.log("found R in registry:", rhome)
+
             path = rhome + "\\bin\\R.exe";
         } catch (e) {
             path = ""
