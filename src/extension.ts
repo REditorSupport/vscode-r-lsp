@@ -34,18 +34,6 @@ async function getRPath(config: vscode.WorkspaceConfiguration) {
         }
     }
 
-    // get path from vscode-r
-    if (process.platform === "win32") {
-        path = config.get("rterm.windows") as string;
-    } else if (process.platform === "darwin") {
-        path = config.get("rterm.mac") as string;
-    } else if (process.platform === "linux") {
-        path = config.get("rterm.linux") as string;
-    }
-    if (path && existsSync(path)) {
-        return path;
-    }
-
     return "R";
 }
 
