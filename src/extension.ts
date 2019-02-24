@@ -19,7 +19,7 @@ async function getRPath(config: vscode.WorkspaceConfiguration) {
                 hive: winreg.HKLM,
                 key: '\\Software\\R-Core\\R'
             });
-            const item = await new Promise((c, e) =>
+            const item: winreg.RegistryItem = await new Promise((c, e) =>
                     key.get('InstallPath', (err, result) => err ? e(err) : c(result)));
 
             const rhome = item.value;
@@ -53,13 +53,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const config = vscode.workspace.getConfiguration('r');
 
+    let client: LanguageClient;
+
     var path = await getRPath(config);
     var debug = config.get("lsp.debug");
-    if (debug) {
-        console.log(`R binary: ${path}`);
-    }
-
-    let client: LanguageClient;
 
     const serverOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
         // Use a TCP socket because of problems with blocking STDIO
@@ -81,6 +78,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
             } else {
                 Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
+            }
+
+            if (debug) {
+                const str = `R binary: ${path}`;
+                console.log(str);
+                client.outputChannel.appendLine(str);
             }
 
             const childProcess = spawn(path, Args);
