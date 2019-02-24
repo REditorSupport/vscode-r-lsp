@@ -1,88 +1,135 @@
-"use strict";
+import * as path from 'path';
+import { spawn, ChildProcess } from 'child_process';
+import * as vscode from 'vscode';
+import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
+import * as net from 'net';
+import * as url from 'url';
+import { existsSync } from 'fs';
+import * as winreg from "winreg";
 
-import cp = require("child_process");
-import { AddressInfo, createServer, Socket } from "net";
-import { ExtensionContext, window, workspace } from "vscode";
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
-
-let client: LanguageClient;
-
-export function activate(context: ExtensionContext) {
-    // The server is implemented in node
-    // let serverModule = context.asAbsolutePath(path.join('R'));
-    // The debug options for the server
-    const serverOptions: ServerOptions = function foo() {
-        return new Promise((resolve, reject) => {
-            let childProcess;
-            const server = createServer((socket) => {
-                // When the language server connects, grab socket, stop listening and resolve
-                // this.socket = socket
-                server.close();
-                resolve({ reader: socket, writer: socket });
-            });
-
-            server.listen(0, "127.0.0.1", () => {
-                const port = (server.address() as AddressInfo).port;
-                const runArgs = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`];
-                // const debugArgs = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE, port=${port})`];
-                            // Once we have a port assigned spawn the Language Server with the port
-                childProcess = cp.spawn(getRpath(), runArgs);
-                childProcess.stderr.on("data", (chunk: Buffer) => {
-                    // tslint:disable-next-line:no-console
-                    console.error(chunk + "");
-                    // window.showErrorMessage(chunk + "");
-                });
-                childProcess.stdout.on("data", (chunk: Buffer) => {
-                    // tslint:disable-next-line:no-console
-                    console.error(chunk + "");
-                });
-                return childProcess;
-            });
-        });
-    };
-
-    const clientOptions: LanguageClientOptions = {
-        // Register the server for plain text documents
-        documentSelector: [{scheme: "file", language: "r"}, {scheme: "file", language: "rmd"}],
-        synchronize: {
-            // Notify the server about file changes to '.clientrc files contain in the workspace
-            fileEvents: workspace.createFileSystemWatcher("**/*.r"),
-        },
-    };
-
-    // Create the language client and start the client.
-    client = new LanguageClient(
-        "rlangsvr",
-        "Language Server R",
-        serverOptions,
-        clientOptions);
-
-    // Start the client. This will also launch the server
-    client.start();
-}
-
-export let config = workspace.getConfiguration("r");
-
-export function getRpath() {
-    const path = config.get("rpath.lsp") as string;
-    if (path !== "") {
+async function getRPath(config: vscode.WorkspaceConfiguration) {
+    var path = config.get("lsp.path") as string;
+    if (path && existsSync(path)) {
         return path;
     }
 
     if (process.platform === "win32") {
-        return config.get("rterm.windows") as string;
+        try{
+            const key = new winreg({
+                hive: winreg.HKLM,
+                key: '\\Software\\R-Core\\R'
+            });
+            const item: winreg.RegistryItem = await new Promise((c, e) =>
+                    key.get('InstallPath', (err, result) => err ? e(err) : c(result)));
+
+            const rhome = item.value;
+            console.log("found R in registry:", rhome)
+
+            path = rhome + "\\bin\\R.exe";
+        } catch (e) {
+            path = ""
+        }
+        if (path && existsSync(path)) {
+            return path;
+        }
+    }
+
+    // get path from vscode-r
+    if (process.platform === "win32") {
+        path = config.get("rterm.windows") as string;
     } else if (process.platform === "darwin") {
-        return config.get("rterm.mac") as string;
-    } else if ( process.platform === "linux") {
-        return config.get("rterm.linux") as string;
-    } else {
-        window.showErrorMessage(process.platform + " can't use R");
-        return "";
+        path = config.get("rterm.mac") as string;
+    } else if (process.platform === "linux") {
+        path = config.get("rterm.linux") as string;
     }
+    if (path && existsSync(path)) {
+        return path;
+    }
+
+    return "R";
 }
-export function deactivate(): Thenable<void> {
-    if (!client) {
-        return undefined;
-    }
-    return client.stop();
+
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+
+    const config = vscode.workspace.getConfiguration('r');
+
+    let client: LanguageClient;
+
+    var path = await getRPath(config);
+    var debug = config.get("lsp.debug");
+
+    const serverOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
+        // Use a TCP socket because of problems with blocking STDIO
+        const server = net.createServer(socket => {
+            // 'connection' listener
+            console.log('R process connected');
+            socket.on('end', () => {
+                console.log('R process disconnected');
+            });
+            server.close();
+            resolve({ reader: socket, writer: socket });
+        });
+        // Listen on random port
+        server.listen(0, '127.0.0.1', () => {
+            const port = (server.address() as net.AddressInfo).port;
+            // The server is implemented in R
+            var Args: string[];
+            if (debug) {
+                Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
+            } else {
+                Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
+            }
+
+            if (debug) {
+                const str = `R binary: ${path}`;
+                console.log(str);
+                client.outputChannel.appendLine(str);
+            }
+
+            const childProcess = spawn(path, Args);
+            childProcess.stderr.on('data', (chunk: Buffer) => {
+                const str = chunk.toString();
+                console.log('R Language Server:', str);
+                client.outputChannel.appendLine(str);
+            });
+            childProcess.on('exit', (code, signal) => {
+                client.outputChannel.appendLine(`Language server exited ` + (signal ? `from signal ${signal}` : `with exit code ${code}`));
+                if (code !== 0) {
+                    client.outputChannel.show();
+                }
+            });
+            return childProcess;
+        });
+    });
+
+    // Options to control the language client
+    const clientOptions: LanguageClientOptions = {
+        // Register the server for php documents
+        documentSelector: [
+            { scheme: 'file', language: 'r' },
+            { scheme: 'file', language: 'rmd' },
+            { scheme: 'untitled', language: 'r' },
+            { scheme: 'untitled', language: 'rmd' }
+        ],
+        uriConverters: {
+            // VS Code by default %-encodes even the colon after the drive letter
+            // NodeJS handles it much better
+            code2Protocol: uri => url.format(url.parse(uri.toString(true))),
+            protocol2Code: str => vscode.Uri.parse(str)
+        },
+        synchronize: {
+            // Synchronize the setting section 'r' to the server
+            configurationSection: 'r.lsp',
+            // Notify the server about changes to R files in the workspace
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.r')
+        }
+    };
+
+    // Create the language client and start the client.
+    client = new LanguageClient('R Language Server', serverOptions, clientOptions);
+    const disposable = client.start();
+
+    // Push the disposable to the context's subscriptions so that the
+    // client can be deactivated on extension deactivation
+    context.subscriptions.push(disposable);
 }

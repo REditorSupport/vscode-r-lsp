@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.0
+
+- follow conventional settings naming
+
+
 ## 0.0.7
 
 add `r.rpath.lsp` to use other R.exe file

@@ -1,4 +1,4 @@
-# VS Code R by LSP
+# R-LSP
 
 R language support for [VS Code](https://code.visualstudio.com/), powered by the [R language server](https://github.com/REditorSupport/languageserver).
 
@@ -17,7 +17,6 @@ The development version can be installed by
 source("https://install-github.me/REditorSupport/languageserver")
 ```
 
-Also, please set the `r.rpath.lsp` to use other R.exe for `r.rterm.xxx`
 
 ## License
 

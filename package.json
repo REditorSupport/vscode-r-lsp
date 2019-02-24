@@ -1,8 +1,8 @@
 {
   "name": "r-lsp",
-  "displayName": "R LSP Client",
-  "description": "R language support for VS Code, powered by the R Language Server Protocol.",
-  "version": "0.0.8",
+  "displayName": "R Language Support",
+  "description": "R language support for [VS Code](https://code.visualstudio.com/), powered by the [R language server](https://github.com/REditorSupport/languageserver).",
+  "version": "0.1.0",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
@@ -38,12 +38,22 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "r",
+      "title": "R",
       "properties": {
-        "r.rpath.lsp": {
+        "r.lsp.path": {
           "type": "string",
           "default": "",
-          "description": "R.exe path for Language Server"
+          "description": "Path to R binary for launching Language Server"
+        },
+        "r.lsp.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Debug R Language Server"
+        },
+        "r.lsp.diagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Diagnostics"
         }
       }
     }
@@ -51,12 +61,14 @@
   "devDependencies": {
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.11.4",
+    "@types/winreg": "^1.2.30",
+    "tslint": "^5.11.0",
     "typescript": "^3.1.1",
-    "vscode": "^1.1.21",
-    "tslint": "^5.11.0"
+    "vscode": "^1.1.21"
   },
   "dependencies": {
-    "child_process": "^1.0.2",
-    "vscode-languageclient": "^5.1.0"
+    "mz": "^2.7.0",
+    "vscode-languageclient": "^5.1.1",
+    "winreg": "^1.2.4"
   }
 }
