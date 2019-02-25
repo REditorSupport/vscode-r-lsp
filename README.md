@@ -1,6 +1,6 @@
-# R-LSP
+# R LSP Client
 
-R language support for [VS Code](https://code.visualstudio.com/), powered by the [R language server](https://github.com/REditorSupport/languageserver).
+R LSP Client for [VS Code](https://code.visualstudio.com/), powered by the [R Language Server](https://github.com/REditorSupport/languageserver).
 
 ## Requirements
 
@@ -9,12 +9,6 @@ It can be easily installed via CRAN
 
 ```r
 install.packages("languageserver")
-```
-
-The development version can be installed by
-
-```r
-source("https://install-github.me/REditorSupport/languageserver")
 ```
 
 

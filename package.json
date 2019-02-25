@@ -1,12 +1,12 @@
 {
   "name": "r-lsp",
-  "displayName": "R Language Support",
-  "description": "R language support for [VS Code](https://code.visualstudio.com/), powered by the [R language server](https://github.com/REditorSupport/languageserver).",
+  "displayName": "R LSP Client",
+  "description": "R LSP Client for VS Code",
   "version": "0.1.0",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
-  "engines": {
+  "engines": {  
     "vscode": "^1.27.2"
   },
   "repository": {
