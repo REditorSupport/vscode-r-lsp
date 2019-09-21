@@ -2,12 +2,12 @@
   "name": "r-lsp",
   "displayName": "R LSP Client",
   "description": "R LSP Client for VS Code",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
   "engines": {
-    "vscode": "^1.27.2"
+    "vscode": "^1.38.1"
   },
   "repository": {
     "type": "git",

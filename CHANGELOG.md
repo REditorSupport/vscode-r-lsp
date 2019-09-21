@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.1
+
+- allow specifying `LANG` environment variable
+
 ## 0.1.0
 
 - follow conventional settings naming
