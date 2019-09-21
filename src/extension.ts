@@ -7,6 +7,7 @@ import * as url from 'url';
 import { existsSync } from 'fs';
 import * as winreg from "winreg";
 
+
 async function getRPath(config: vscode.WorkspaceConfiguration) {
     var path = config.get("lsp.path") as string;
     if (path && existsSync(path)) {
@@ -69,12 +70,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             }
 
             if (debug) {
-                const str = `R binary: ${path}`;
+                const str = `R2 binary: ${path}`;
                 console.log(str);
                 client.outputChannel.appendLine(str);
             }
 
-            const childProcess = spawn(path, Args);
+            var env = Object.create(process.env);
+            var lang = config.get("lsp.lang") as string;
+            if (lang != "") {
+                env.LANG = lang;
+            } else if (env.LANG == undefined) {
+                env.LANG = "en_US.UTF-8";
+            }
+            if (debug) {
+                const str = `LANG: ${env.LANG}`;
+                console.log(str);
+                client.outputChannel.appendLine(str);
+            }
+            const childProcess = spawn(path, Args, {env: env});
             childProcess.stderr.on('data', (chunk: Buffer) => {
                 const str = chunk.toString();
                 console.log('R Language Server:', str);

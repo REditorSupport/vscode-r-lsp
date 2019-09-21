@@ -6,7 +6,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
-  "engines": {  
+  "engines": {
     "vscode": "^1.27.2"
   },
   "repository": {
@@ -54,6 +54,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable Diagnostics"
+        },
+        "r.lsp.lang": {
+          "type": "string",
+          "default": "",
+          "description": "Override default LANG environment variable"
         }
       }
     }
