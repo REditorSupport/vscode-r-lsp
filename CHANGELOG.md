@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.2
+
+- suppor stdio connection
+
 ## 0.1.1
 
 - allow specifying `LANG` environment variable
