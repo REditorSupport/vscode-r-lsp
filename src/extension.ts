@@ -46,8 +46,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     var path = await getRPath(config);
     var debug = config.get("lsp.debug");
+    var use_stdio = config.get("lsp.use_stdio");
+    var args: string[];
 
-    const serverOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
+    const tcpServerOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
         // Use a TCP socket because of problems with blocking STDIO
         const server = net.createServer(socket => {
             // 'connection' listener
@@ -62,15 +64,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         server.listen(0, '127.0.0.1', () => {
             const port = (server.address() as net.AddressInfo).port;
             // The server is implemented in R
-            var Args: string[];
             if (debug) {
-                Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
+                args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
             } else {
-                Args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
+                args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
             }
 
             if (debug) {
-                const str = `R2 binary: ${path}`;
+                const str = `R binary: ${path}`;
                 console.log(str);
                 client.outputChannel.appendLine(str);
             }
@@ -87,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 console.log(str);
                 client.outputChannel.appendLine(str);
             }
-            const childProcess = spawn(path, Args, {env: env});
+            const childProcess = spawn(path, args, { env: env });
             childProcess.stderr.on('data', (chunk: Buffer) => {
                 const str = chunk.toString();
                 console.log('R Language Server:', str);
@@ -127,7 +128,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     };
 
     // Create the language client and start the client.
-    client = new LanguageClient('R Language Server', serverOptions, clientOptions);
+    if (use_stdio && process.platform != "win32") {
+        if (debug) {
+            args = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE)`]
+        } else {
+            args = ["--quiet", "--slave", "-e", `languageserver::run()`]
+        }
+        client = new LanguageClient('R Language Server', {command: path, args: args}, clientOptions);
+    } else {
+        client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
+    }
     const disposable = client.start();
 
     // Push the disposable to the context's subscriptions so that the

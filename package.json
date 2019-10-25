@@ -59,6 +59,11 @@
           "type": "string",
           "default": "",
           "description": "Override default LANG environment variable"
+        },
+        "r.lsp.use_stdio": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use STDIO connection instead of TCP. (Unix/macOS users only)"
         }
       }
     }
