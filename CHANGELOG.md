@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.3
+
+- respect LANG var in STDIO connection
+
 ## 0.1.2
 
 - suppor stdio connection
