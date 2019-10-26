@@ -43,11 +43,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const config = vscode.workspace.getConfiguration('r');
 
     let client: LanguageClient;
-
-    var path = await getRPath(config);
+    
     var debug = config.get("lsp.debug");
+    var path = await getRPath(config);
+    if (debug) {
+        const str = `R binary: ${path}`;
+        console.log(str);
+    }
     var use_stdio = config.get("lsp.use_stdio");
     var args: string[];
+    var env = Object.create(process.env);
+    var lang = config.get("lsp.lang") as string;
+    if (lang != "") {
+        env.LANG = lang;
+    } else if (env.LANG == undefined) {
+        env.LANG = "en_US.UTF-8";
+    }
+    if (debug) {
+        const str = `LANG: ${env.LANG}`;
+        console.log(str);
+    }
 
     const tcpServerOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
         // Use a TCP socket because of problems with blocking STDIO
@@ -68,25 +83,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
             } else {
                 args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
-            }
-
-            if (debug) {
-                const str = `R binary: ${path}`;
-                console.log(str);
-                client.outputChannel.appendLine(str);
-            }
-
-            var env = Object.create(process.env);
-            var lang = config.get("lsp.lang") as string;
-            if (lang != "") {
-                env.LANG = lang;
-            } else if (env.LANG == undefined) {
-                env.LANG = "en_US.UTF-8";
-            }
-            if (debug) {
-                const str = `LANG: ${env.LANG}`;
-                console.log(str);
-                client.outputChannel.appendLine(str);
             }
             const childProcess = spawn(path, args, { env: env });
             childProcess.stderr.on('data', (chunk: Buffer) => {
@@ -134,7 +130,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         } else {
             args = ["--quiet", "--slave", "-e", `languageserver::run()`]
         }
-        client = new LanguageClient('R Language Server', {command: path, args: args}, clientOptions);
+        client = new LanguageClient('R Language Server', {command: path, args: args, options: {env: env}}, clientOptions);
     } else {
         client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
     }
