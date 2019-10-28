@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.4
+
+- activate on r markdown
+
 ## 0.1.3
 
 - respect LANG var in STDIO connection

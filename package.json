@@ -2,7 +2,7 @@
   "name": "r-lsp",
   "displayName": "R LSP Client",
   "description": "R LSP Client for VS Code",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
@@ -26,7 +26,8 @@
     "R language"
   ],
   "activationEvents": [
-    "onLanguage:r"
+    "onLanguage:r",
+    "onLanguage:rmarkdown"
   ],
   "main": "./out/src/extension",
   "scripts": {
