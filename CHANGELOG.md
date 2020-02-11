@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.5
+
+- actually activate on r markdown
+
+
 ## 0.1.4
 
 - activate on r markdown
