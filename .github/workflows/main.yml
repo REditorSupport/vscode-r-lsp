@@ -3,13 +3,15 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VSIX_FILE: vscode-r-lsp.vsix
     steps:
       - uses: actions/checkout@v2
       - run: npm install
       - uses: lannonbr/vsce-action@master
         with:
-          args: "package -o vscode-r-lsp.vsix"
+          args: "package -o $VSIX_FILE"
       - uses: actions/upload-artifact@v1
         with:
-          name: vscode-r-lsp.vsix
-          path: vscode-r-lsp.vsix
+          name: $VSIX_FILE
+          path: $VSIX_FILE
