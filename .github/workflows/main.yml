@@ -13,5 +13,5 @@ jobs:
           args: "package -o $VSIX_FILE"
       - uses: actions/upload-artifact@v1
         with:
-          name: "$VSIX_FILE"
-          path: "$VSIX_FILE"
+          name: ${{ env.VSIX_FILE }}
+          path: ${{ env.VSIX_FILE }}
