@@ -1,9 +1,12 @@
 # Change Log
 
+## 0.1.6
+
+- add a new setting `r.lsp.args` to support customized startup arguments (e.g. `--no-init-file`) of R language server ([#34](https://github.com/REditorSupport/vscode-r-lsp/issues/34))
+
 ## 0.1.5
 
 - actually activate on r markdown
-
 
 ## 0.1.4
 
