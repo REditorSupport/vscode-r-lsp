@@ -1,0 +1,17 @@
+name: main
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VSIX_FILE: vscode-r-lsp.vsix
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm install
+      - uses: lannonbr/vsce-action@master
+        with:
+          args: "package -o $VSIX_FILE"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.VSIX_FILE }}
+          path: ${{ env.VSIX_FILE }}

@@ -51,7 +51,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         console.log(str);
     }
     var use_stdio = config.get("lsp.use_stdio");
-    var args: string[];
     var env = Object.create(process.env);
     var lang = config.get("lsp.lang") as string;
     if (lang != "") {
@@ -63,6 +62,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const str = `LANG: ${env.LANG}`;
         console.log(str);
     }
+
+    const initArgs: string[] = config.get("lsp.args");
+    initArgs.push("--quiet", "--slave");
 
     const tcpServerOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
         // Use a TCP socket because of problems with blocking STDIO
@@ -78,11 +80,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Listen on random port
         server.listen(0, '127.0.0.1', () => {
             const port = (server.address() as net.AddressInfo).port;
+            var args: string[];
             // The server is implemented in R
             if (debug) {
-                args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port},debug=TRUE)`]
+                args = initArgs.concat(["-e", `languageserver::run(port=${port},debug=TRUE)`]);
             } else {
-                args = ["--quiet", "--slave", "-e", `languageserver::run(port=${port})`]
+                args = initArgs.concat(["-e", `languageserver::run(port=${port})`]);
             }
             const childProcess = spawn(path, args, { env: env });
             childProcess.stderr.on('data', (chunk: Buffer) => {
@@ -125,12 +128,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Create the language client and start the client.
     if (use_stdio && process.platform != "win32") {
+        var args: string[];
         if (debug) {
-            args = ["--quiet", "--slave", "-e", `languageserver::run(debug=TRUE)`]
+            args = initArgs.concat(["-e", `languageserver::run(debug=TRUE)`]);
         } else {
-            args = ["--quiet", "--slave", "-e", `languageserver::run()`]
+            args = initArgs.concat(["-e", `languageserver::run()`]);
         }
-        client = new LanguageClient('R Language Server', {command: path, args: args, options: {env: env}}, clientOptions);
+        client = new LanguageClient('R Language Server', { command: path, args: args, options: { env: env } }, clientOptions);
     } else {
         client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
     }

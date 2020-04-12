@@ -46,6 +46,11 @@
           "default": "",
           "description": "Path to R binary for launching Language Server"
         },
+        "r.lsp.args": {
+          "type": "array",
+          "default": [],
+          "description": "The command line arguments to use when launching R Language Server"
+        },
         "r.lsp.debug": {
           "type": "boolean",
           "default": false,
