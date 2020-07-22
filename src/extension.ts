@@ -1,49 +1,16 @@
-import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
 import * as net from 'net';
 import * as url from 'url';
-import { existsSync } from 'fs';
-import * as winreg from "winreg";
+import { getRPath } from './util'
+import { ExtensionContext, workspace, Uri } from 'vscode';
 
+export async function activate(context: ExtensionContext): Promise<void> {
 
-async function getRPath(config: vscode.WorkspaceConfiguration) {
-    var path = config.get("lsp.path") as string;
-    if (path && existsSync(path)) {
-        return path;
-    }
-
-    if (process.platform === "win32") {
-        try{
-            const key = new winreg({
-                hive: winreg.HKLM,
-                key: '\\Software\\R-Core\\R'
-            });
-            const item: winreg.RegistryItem = await new Promise((c, e) =>
-                    key.get('InstallPath', (err, result) => err ? e(err) : c(result)));
-
-            const rhome = item.value;
-            console.log("found R in registry:", rhome)
-
-            path = rhome + "\\bin\\R.exe";
-        } catch (e) {
-            path = ""
-        }
-        if (path && existsSync(path)) {
-            return path;
-        }
-    }
-
-    return "R";
-}
-
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
-
-    const config = vscode.workspace.getConfiguration('r');
+    const config = workspace.getConfiguration('r');
 
     let client: LanguageClient;
-    
+
     var debug = config.get("lsp.debug");
     var path = await getRPath(config);
     if (debug) {
@@ -116,13 +83,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             // VS Code by default %-encodes even the colon after the drive letter
             // NodeJS handles it much better
             code2Protocol: uri => url.format(url.parse(uri.toString(true))),
-            protocol2Code: str => vscode.Uri.parse(str)
+            protocol2Code: str => Uri.parse(str)
         },
         synchronize: {
             // Synchronize the setting section 'r' to the server
             configurationSection: 'r.lsp',
             // Notify the server about changes to R files in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.r')
+            fileEvents: workspace.createFileSystemWatcher('**/*.r')
         }
     };
 
