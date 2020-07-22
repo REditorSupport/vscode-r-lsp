@@ -142,6 +142,8 @@ export function activate(context: ExtensionContext) {
                 clients.set(document.uri.toString(), client);
                 return;
             }
+
+            return;
         }
 
         // Each workspace share a client started from workspace folder
