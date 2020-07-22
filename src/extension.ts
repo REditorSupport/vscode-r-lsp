@@ -3,12 +3,13 @@ import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-langua
 import * as net from 'net';
 import * as url from 'url';
 import { getRPath } from './util'
-import { ExtensionContext, workspace, Uri } from 'vscode';
+import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window } from 'vscode';
+import os = require('os');
 
-export async function activate(context: ExtensionContext): Promise<void> {
+let defaultClient: LanguageClient;
+let clients: Map<string, LanguageClient> = new Map();
 
-    const config = workspace.getConfiguration('r');
-
+async function createClient(config: WorkspaceConfiguration, cwd: string, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
 
     var debug = config.get("lsp.debug");
@@ -54,7 +55,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             } else {
                 args = initArgs.concat(["-e", `languageserver::run(port=${port})`]);
             }
-            const childProcess = spawn(path, args, { env: env });
+            const childProcess = spawn(path, args, { cwd: cwd, env: env });
             childProcess.stderr.on('data', (chunk: Buffer) => {
                 const str = chunk.toString();
                 console.log('R Language Server:', str);
@@ -90,7 +91,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
             configurationSection: 'r.lsp',
             // Notify the server about changes to R files in the workspace
             fileEvents: workspace.createFileSystemWatcher('**/*.r')
-        }
+        },
+        outputChannel: outputChannel,
     };
 
     // Create the language client and start the client.
@@ -101,13 +103,67 @@ export async function activate(context: ExtensionContext): Promise<void> {
         } else {
             args = initArgs.concat(["-e", `languageserver::run()`]);
         }
-        client = new LanguageClient('R Language Server', { command: path, args: args, options: { env: env } }, clientOptions);
+        client = new LanguageClient('R Language Server', { command: path, args: args, options: { cwd: cwd, env: env } }, clientOptions);
     } else {
         client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
     }
-    const disposable = client.start();
+    return client;
+}
 
-    // Push the disposable to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
+export function activate(context: ExtensionContext) {
+
+    const config = workspace.getConfiguration('r');
+    const outputChannel: OutputChannel = window.createOutputChannel('R Language Server');
+
+    async function didOpenTextDocument(document: TextDocument) {
+        if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled') {
+            return;
+        }
+
+        if (document.languageId !== 'r' && document.languageId !== 'rmd') {
+            return;
+        }
+
+        const uri = document.uri;
+        // Untitled files go to a default client.
+        if (uri.scheme === 'untitled' && !defaultClient) {
+            defaultClient = await createClient(config, os.homedir(), outputChannel);
+            defaultClient.start();
+            return;
+        }
+
+        const folder = workspace.getWorkspaceFolder(uri);
+        if (!folder) {
+            return;
+        }
+
+        if (!clients.has(folder.uri.toString())) {
+            let client = await createClient(config, folder.uri.fsPath, outputChannel);
+            client.start();
+            clients.set(folder.uri.toString(), client);
+        }
+    }
+
+    workspace.onDidOpenTextDocument(didOpenTextDocument);
+    workspace.textDocuments.forEach(didOpenTextDocument);
+    workspace.onDidChangeWorkspaceFolders((event) => {
+        for (let folder of event.removed) {
+            let client = clients.get(folder.uri.toString());
+            if (client) {
+                clients.delete(folder.uri.toString());
+                client.stop()
+            }
+        }
+    });
+}
+
+export function deactivate(): Thenable<void> {
+    let promises: Thenable<void>[] = [];
+    if (defaultClient) {
+        promises.push(defaultClient.stop());
+    }
+    for (let client of clients.values()) {
+        promises.push(client.stop());
+    }
+    return Promise.all(promises).then(() => undefined);
 }
