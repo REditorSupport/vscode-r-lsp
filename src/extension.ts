@@ -121,7 +121,7 @@ export function activate(context: ExtensionContext) {
         const folder = workspace.getWorkspaceFolder(document.uri);
         if (!folder) {
 
-            // All untitled documents share a client started from home folder
+            // All untitled documents share a server started from home folder
             if (document.uri.scheme === 'untitled' && !defaultClient) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'untitled', language: 'r' },
@@ -132,7 +132,7 @@ export function activate(context: ExtensionContext) {
                 return;
             }
 
-            // Each file outside workspace uses a client started from parent folder
+            // Each file outside workspace uses a server started from parent folder
             if (document.uri.scheme === 'file' && !clients.has(document.uri.toString())) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'file', pattern: document.uri.fsPath },
@@ -146,7 +146,7 @@ export function activate(context: ExtensionContext) {
             return;
         }
 
-        // Each workspace share a client started from workspace folder
+        // Each workspace uses a server started from the workspace folder
         if (!clients.has(folder.uri.toString())) {
             const pattern = `${folder.uri.fsPath}/**/*`;
             const documentSelector: DocumentFilter[] = [
