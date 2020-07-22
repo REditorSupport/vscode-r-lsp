@@ -1,15 +1,15 @@
 import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } from 'vscode-languageclient';
 import * as net from 'net';
 import * as url from 'url';
 import { getRPath } from './util'
-import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder, DocumentSelector } from 'vscode';
+import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import os = require('os');
 
 let defaultClient: LanguageClient;
 let clients: Map<string, LanguageClient> = new Map();
 
-async function createClient(config: WorkspaceConfiguration, cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
+async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[], cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
 
     var debug = config.get("lsp.debug");
@@ -74,24 +74,10 @@ async function createClient(config: WorkspaceConfiguration, cwd: string, workspa
         });
     });
 
-    let documentSelector;
-    if (workspaceFolder === undefined) {
-        documentSelector = [
-            { scheme: 'untitled', language: 'r' },
-            { scheme: 'untitled', language: 'rmd' }
-        ];
-    } else {
-        const pattern = `${workspaceFolder.uri.fsPath}/**/*`;
-        documentSelector = [
-            { scheme: 'file', language: 'r', pattern: pattern },
-            { scheme: 'file', language: 'rmd', pattern: pattern },
-        ];
-    }
-
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for php documents
-        documentSelector: documentSelector,
+        documentSelector: selector,
         uriConverters: {
             // VS Code by default %-encodes even the colon after the drive letter
             // NodeJS handles it much better
@@ -123,7 +109,6 @@ export function activate(context: ExtensionContext) {
     const outputChannel: OutputChannel = window.createOutputChannel('R Language Server');
 
     async function didOpenTextDocument(document: TextDocument) {
-        outputChannel.appendLine(document.uri.toString());
         if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled') {
             return;
         }
@@ -132,27 +117,55 @@ export function activate(context: ExtensionContext) {
             return;
         }
 
-        const uri = document.uri;
-        // Untitled files go to a default client.
-        if (uri.scheme === 'untitled' && !defaultClient) {
-            defaultClient = await createClient(config, os.homedir(), undefined, outputChannel);
-            defaultClient.start();
-            return;
-        }
-
-        const folder = workspace.getWorkspaceFolder(uri);
+        const folder = workspace.getWorkspaceFolder(document.uri);
         if (!folder) {
-            return;
+
+            // All untitled documents share a client
+            if (document.uri.scheme === 'untitled' && !defaultClient) {
+                const documentSelector: DocumentFilter[] = [
+                    { scheme: 'untitled', language: 'r' },
+                    { scheme: 'untitled', language: 'rmd' },
+                ];
+                defaultClient = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
+                defaultClient.start();
+                return;
+            }
+
+            // Each file outside workspace uses a client
+            if (document.uri.scheme === 'file' && !clients.has(document.uri.toString())) {
+                const documentSelector: DocumentFilter[] = [
+                    { scheme: 'file', pattern: document.uri.fsPath },
+                ];
+                let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
+                client.start();
+                clients.set(document.uri.toString(), client);
+                return;
+            }
         }
 
+        // Each workspace share a client
         if (!clients.has(folder.uri.toString())) {
-            let client = await createClient(config, folder.uri.fsPath, folder, outputChannel);
+            const pattern = `${folder.uri.fsPath}/**/*`;
+            const documentSelector: DocumentFilter[] = [
+                { scheme: 'file', language: 'r', pattern: pattern },
+                { scheme: 'file', language: 'rmd', pattern: pattern },
+            ];
+            let client = await createClient(config, documentSelector, folder.uri.fsPath, folder, outputChannel);
             client.start();
             clients.set(folder.uri.toString(), client);
         }
     }
 
+    async function didCloseTextDocument(document: TextDocument) {
+        let client = clients.get(document.uri.toString());
+        if (client) {
+            clients.delete(document.uri.toString());
+            client.stop();
+        }
+    }
+
     workspace.onDidOpenTextDocument(didOpenTextDocument);
+    workspace.onDidCloseTextDocument(didCloseTextDocument);
     workspace.textDocuments.forEach(didOpenTextDocument);
     workspace.onDidChangeWorkspaceFolders((event) => {
         for (let folder of event.removed) {
