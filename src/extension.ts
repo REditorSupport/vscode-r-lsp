@@ -7,10 +7,10 @@ import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration,
 import os = require('os');
 import path = require('path');
 
-let defaultClient: LanguageClient;
 let clients: Map<string, LanguageClient> = new Map();
 
-async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[], cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
+async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[],
+    cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
 
     var debug = config.get("lsp.debug");
@@ -60,16 +60,19 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
                 args = initArgs.concat(["-e", `languageserver::run(port=${port})`]);
             }
             const childProcess = spawn(path, args, options);
+            client.outputChannel.appendLine(`R Language Server (${childProcess.pid}) started`);
             childProcess.stderr.on('data', (chunk: Buffer) => {
                 const str = chunk.toString();
-                console.log('R Language Server:', str);
+                console.log(`R Language Server (${childProcess.pid}): ${str}`);
                 client.outputChannel.appendLine(str);
             });
             childProcess.on('exit', (code, signal) => {
-                client.outputChannel.appendLine(`Language server exited ` + (signal ? `from signal ${signal}` : `with exit code ${code}`));
+                client.outputChannel.appendLine(`R Language Server (${childProcess.pid}) exited ` +
+                    (signal ? `from signal ${signal}` : `with exit code ${code}`));
                 if (code !== 0) {
                     client.outputChannel.show();
                 }
+                client.stop();
             });
             return childProcess;
         });
@@ -104,6 +107,11 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
     return client;
 }
 
+function checkClient(name: string): boolean {
+    let client = clients.get(name);
+    return client && client.needsStop();
+}
+
 export function activate(context: ExtensionContext) {
 
     const config = workspace.getConfiguration('r');
@@ -122,22 +130,24 @@ export function activate(context: ExtensionContext) {
         if (!folder) {
 
             // All untitled documents share a server started from home folder
-            if (document.uri.scheme === 'untitled' && !defaultClient) {
+            if (document.uri.scheme === 'untitled' && !checkClient('untitled')) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'untitled', language: 'r' },
                     { scheme: 'untitled', language: 'rmd' },
                 ];
-                defaultClient = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
-                defaultClient.start();
+                let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
+                client.start();
+                clients.set('untitled', client);
                 return;
             }
 
             // Each file outside workspace uses a server started from parent folder
-            if (document.uri.scheme === 'file' && !clients.has(document.uri.toString())) {
+            if (document.uri.scheme === 'file' && !checkClient(document.uri.toString())) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'file', pattern: document.uri.fsPath },
                 ];
-                let client = await createClient(config, documentSelector, path.dirname(document.uri.fsPath), undefined, outputChannel);
+                let client = await createClient(config, documentSelector,
+                    path.dirname(document.uri.fsPath), undefined, outputChannel);
                 client.start();
                 clients.set(document.uri.toString(), client);
                 return;
@@ -147,7 +157,7 @@ export function activate(context: ExtensionContext) {
         }
 
         // Each workspace uses a server started from the workspace folder
-        if (!clients.has(folder.uri.toString())) {
+        if (!checkClient(folder.uri.toString())) {
             const pattern = `${folder.uri.fsPath}/**/*`;
             const documentSelector: DocumentFilter[] = [
                 { scheme: 'file', language: 'r', pattern: pattern },
@@ -183,9 +193,6 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate(): Thenable<void> {
     let promises: Thenable<void>[] = [];
-    if (defaultClient) {
-        promises.push(defaultClient.stop());
-    }
     for (let client of clients.values()) {
         promises.push(client.stop());
     }
