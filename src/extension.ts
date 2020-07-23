@@ -1,11 +1,11 @@
-import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } from 'vscode-languageclient';
-import * as net from 'net';
-import * as url from 'url';
-import { getRPath } from './util'
-import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import os = require('os');
 import path = require('path');
+import net = require('net');
+import url = require('url');
+import { spawn, ChildProcess } from 'child_process';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } from 'vscode-languageclient';
+import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
+import { getRPath } from './util'
 
 let clients: Map<string, LanguageClient> = new Map();
 
