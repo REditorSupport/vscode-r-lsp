@@ -9,7 +9,8 @@ import path = require('path');
 
 let clients: Map<string, LanguageClient> = new Map();
 
-async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[], cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
+async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[],
+    cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
 
     var debug = config.get("lsp.debug");
@@ -71,6 +72,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
                 if (code !== 0) {
                     client.outputChannel.show();
                 }
+                client.stop();
             });
             return childProcess;
         });
@@ -105,6 +107,11 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
     return client;
 }
 
+function checkClient(name: string): boolean {
+    let client = clients.get(name);
+    return client && client.needsStop();
+}
+
 export function activate(context: ExtensionContext) {
 
     const config = workspace.getConfiguration('r');
@@ -123,7 +130,7 @@ export function activate(context: ExtensionContext) {
         if (!folder) {
 
             // All untitled documents share a server started from home folder
-            if (document.uri.scheme === 'untitled' && !clients.has('untitled')) {
+            if (document.uri.scheme === 'untitled' && !checkClient('untitled')) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'untitled', language: 'r' },
                     { scheme: 'untitled', language: 'rmd' },
@@ -135,11 +142,12 @@ export function activate(context: ExtensionContext) {
             }
 
             // Each file outside workspace uses a server started from parent folder
-            if (document.uri.scheme === 'file' && !clients.has(document.uri.toString())) {
+            if (document.uri.scheme === 'file' && !checkClient(document.uri.toString())) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'file', pattern: document.uri.fsPath },
                 ];
-                let client = await createClient(config, documentSelector, path.dirname(document.uri.fsPath), undefined, outputChannel);
+                let client = await createClient(config, documentSelector,
+                    path.dirname(document.uri.fsPath), undefined, outputChannel);
                 client.start();
                 clients.set(document.uri.toString(), client);
                 return;
@@ -149,7 +157,7 @@ export function activate(context: ExtensionContext) {
         }
 
         // Each workspace uses a server started from the workspace folder
-        if (!clients.has(folder.uri.toString())) {
+        if (!checkClient(folder.uri.toString())) {
             const pattern = `${folder.uri.fsPath}/**/*`;
             const documentSelector: DocumentFilter[] = [
                 { scheme: 'file', language: 'r', pattern: pattern },
