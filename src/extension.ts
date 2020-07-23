@@ -1,49 +1,18 @@
-import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, StreamInfo } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } from 'vscode-languageclient';
 import * as net from 'net';
 import * as url from 'url';
-import { existsSync } from 'fs';
-import * as winreg from "winreg";
+import { getRPath } from './util'
+import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
+import os = require('os');
+import path = require('path');
 
+let defaultClient: LanguageClient;
+let clients: Map<string, LanguageClient> = new Map();
 
-async function getRPath(config: vscode.WorkspaceConfiguration) {
-    var path = config.get("lsp.path") as string;
-    if (path && existsSync(path)) {
-        return path;
-    }
-
-    if (process.platform === "win32") {
-        try{
-            const key = new winreg({
-                hive: winreg.HKLM,
-                key: '\\Software\\R-Core\\R'
-            });
-            const item: winreg.RegistryItem = await new Promise((c, e) =>
-                    key.get('InstallPath', (err, result) => err ? e(err) : c(result)));
-
-            const rhome = item.value;
-            console.log("found R in registry:", rhome)
-
-            path = rhome + "\\bin\\R.exe";
-        } catch (e) {
-            path = ""
-        }
-        if (path && existsSync(path)) {
-            return path;
-        }
-    }
-
-    return "R";
-}
-
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
-
-    const config = vscode.workspace.getConfiguration('r');
-
+async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[], cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
-    
+
     var debug = config.get("lsp.debug");
     var path = await getRPath(config);
     if (debug) {
@@ -63,7 +32,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         console.log(str);
     }
 
-    const initArgs: string[] = config.get("lsp.args");
+    const options = { cwd: cwd, env: env };
+
+    let initArgs: string[] = [];
+    initArgs.push(config.get("lsp.args"));
     initArgs.push("--quiet", "--slave");
 
     const tcpServerOptions = () => new Promise<ChildProcess | StreamInfo>((resolve, reject) => {
@@ -87,7 +59,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             } else {
                 args = initArgs.concat(["-e", `languageserver::run(port=${port})`]);
             }
-            const childProcess = spawn(path, args, { env: env });
+            const childProcess = spawn(path, args, options);
             childProcess.stderr.on('data', (chunk: Buffer) => {
                 const str = chunk.toString();
                 console.log('R Language Server:', str);
@@ -106,24 +78,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for php documents
-        documentSelector: [
-            { scheme: 'file', language: 'r' },
-            { scheme: 'file', language: 'rmd' },
-            { scheme: 'untitled', language: 'r' },
-            { scheme: 'untitled', language: 'rmd' }
-        ],
+        documentSelector: selector,
         uriConverters: {
             // VS Code by default %-encodes even the colon after the drive letter
             // NodeJS handles it much better
             code2Protocol: uri => url.format(url.parse(uri.toString(true))),
-            protocol2Code: str => vscode.Uri.parse(str)
+            protocol2Code: str => Uri.parse(str)
         },
-        synchronize: {
-            // Synchronize the setting section 'r' to the server
-            configurationSection: 'r.lsp',
-            // Notify the server about changes to R files in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.r')
-        }
+        workspaceFolder: workspaceFolder,
+        outputChannel: outputChannel,
     };
 
     // Create the language client and start the client.
@@ -134,13 +97,97 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         } else {
             args = initArgs.concat(["-e", `languageserver::run()`]);
         }
-        client = new LanguageClient('R Language Server', { command: path, args: args, options: { env: env } }, clientOptions);
+        client = new LanguageClient('R Language Server', { command: path, args: args, options: options }, clientOptions);
     } else {
         client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
     }
-    const disposable = client.start();
+    return client;
+}
 
-    // Push the disposable to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
+export function activate(context: ExtensionContext) {
+
+    const config = workspace.getConfiguration('r');
+    const outputChannel: OutputChannel = window.createOutputChannel('R Language Server');
+
+    async function didOpenTextDocument(document: TextDocument) {
+        if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled') {
+            return;
+        }
+
+        if (document.languageId !== 'r' && document.languageId !== 'rmd') {
+            return;
+        }
+
+        const folder = workspace.getWorkspaceFolder(document.uri);
+        if (!folder) {
+
+            // All untitled documents share a server started from home folder
+            if (document.uri.scheme === 'untitled' && !defaultClient) {
+                const documentSelector: DocumentFilter[] = [
+                    { scheme: 'untitled', language: 'r' },
+                    { scheme: 'untitled', language: 'rmd' },
+                ];
+                defaultClient = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
+                defaultClient.start();
+                return;
+            }
+
+            // Each file outside workspace uses a server started from parent folder
+            if (document.uri.scheme === 'file' && !clients.has(document.uri.toString())) {
+                const documentSelector: DocumentFilter[] = [
+                    { scheme: 'file', pattern: document.uri.fsPath },
+                ];
+                let client = await createClient(config, documentSelector, path.dirname(document.uri.fsPath), undefined, outputChannel);
+                client.start();
+                clients.set(document.uri.toString(), client);
+                return;
+            }
+
+            return;
+        }
+
+        // Each workspace uses a server started from the workspace folder
+        if (!clients.has(folder.uri.toString())) {
+            const pattern = `${folder.uri.fsPath}/**/*`;
+            const documentSelector: DocumentFilter[] = [
+                { scheme: 'file', language: 'r', pattern: pattern },
+                { scheme: 'file', language: 'rmd', pattern: pattern },
+            ];
+            let client = await createClient(config, documentSelector, folder.uri.fsPath, folder, outputChannel);
+            client.start();
+            clients.set(folder.uri.toString(), client);
+        }
+    }
+
+    async function didCloseTextDocument(document: TextDocument) {
+        let client = clients.get(document.uri.toString());
+        if (client) {
+            clients.delete(document.uri.toString());
+            client.stop();
+        }
+    }
+
+    workspace.onDidOpenTextDocument(didOpenTextDocument);
+    workspace.onDidCloseTextDocument(didCloseTextDocument);
+    workspace.textDocuments.forEach(didOpenTextDocument);
+    workspace.onDidChangeWorkspaceFolders((event) => {
+        for (let folder of event.removed) {
+            let client = clients.get(folder.uri.toString());
+            if (client) {
+                clients.delete(folder.uri.toString());
+                client.stop()
+            }
+        }
+    });
+}
+
+export function deactivate(): Thenable<void> {
+    let promises: Thenable<void>[] = [];
+    if (defaultClient) {
+        promises.push(defaultClient.stop());
+    }
+    for (let client of clients.values()) {
+        promises.push(client.stop());
+    }
+    return Promise.all(promises).then(() => undefined);
 }
