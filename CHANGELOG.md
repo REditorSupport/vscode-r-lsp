@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.1.7
+
+- Support multi-workspace ([#45](https://github.com/REditorSupport/vscode-r-lsp/pull/45)):
+  - Untilted documents share a server started from home folder.
+  - Each file outside workspaces uses a server started from parent folder.
+  - Each workspace uses a server started from the workspace folder.
+  - For `renv`-enabled project, user has to install `languageserver` into the project library,
+    or otherwise `r.lsp.args = [ "--no-init-file" ]` should be used to skip the project profile.
+
 ## 0.1.6
 
 - add a new setting `r.lsp.args` to support customized startup arguments (e.g. `--no-init-file`) of R language server ([#34](https://github.com/REditorSupport/vscode-r-lsp/issues/34))
