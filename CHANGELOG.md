@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.8
+
+- Fix settings synchronization to allow disabling diagnostics ([#47](https://github.com/REditorSupport/vscode-r-lsp/pull/47))
+
 ## 0.1.7
 
 - Support multi-workspace ([#45](https://github.com/REditorSupport/vscode-r-lsp/pull/45), [#46](https://github.com/REditorSupport/vscode-r-lsp/pull/46)):

@@ -2,7 +2,7 @@
   "name": "r-lsp",
   "displayName": "R LSP Client",
   "description": "R LSP Client for VS Code",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "SEE LICENSE IN LICENSE",
   "publisher": "REditorSupport",
   "icon": "images/Rlogo.png",
