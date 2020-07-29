@@ -90,6 +90,10 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
         },
         workspaceFolder: workspaceFolder,
         outputChannel: outputChannel,
+        synchronize: {
+            // Synchronize the setting section 'r' to the server
+            configurationSection: 'r.lsp',
+        }
     };
 
     // Create the language client and start the client.
