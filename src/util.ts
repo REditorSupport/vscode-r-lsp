@@ -3,7 +3,7 @@ import { WorkspaceConfiguration } from 'vscode';
 import { existsSync } from "fs";
 
 export async function getRPath(config: WorkspaceConfiguration) {
-  var path = config.get("lsp.path") as string;
+  let path = config.get<string>("lsp.path");
   if (path && existsSync(path)) {
     return path;
   }
@@ -22,7 +22,7 @@ export async function getRPath(config: WorkspaceConfiguration) {
 
       path = rhome + "\\bin\\R.exe";
     } catch (e) {
-      path = ""
+      path = '';
     }
     if (path && existsSync(path)) {
       return path;

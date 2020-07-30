@@ -13,23 +13,21 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
     cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
     let client: LanguageClient;
 
-    var debug = config.get("lsp.debug");
-    var path = await getRPath(config);
+    const debug = config.get<boolean>("lsp.debug");
+    const path = await getRPath(config);
     if (debug) {
-        const str = `R binary: ${path}`;
-        console.log(str);
+        console.log(`R binary: ${path}`);
     }
-    var use_stdio = config.get("lsp.use_stdio");
-    var env = Object.create(process.env);
-    var lang = config.get("lsp.lang") as string;
-    if (lang != "") {
+    const use_stdio = config.get<boolean>("lsp.use_stdio");
+    const env = Object.create(process.env);
+    const lang = config.get<string>("lsp.lang");
+    if (lang !== '') {
         env.LANG = lang;
     } else if (env.LANG == undefined) {
         env.LANG = "en_US.UTF-8";
     }
     if (debug) {
-        const str = `LANG: ${env.LANG}`;
-        console.log(str);
+        console.log(`LANG: ${env.LANG}`);
     }
 
     const options = { cwd: cwd, env: env };
@@ -49,7 +47,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
         // Listen on random port
         server.listen(0, '127.0.0.1', () => {
             const port = (server.address() as net.AddressInfo).port;
-            var args: string[];
+            let args: string[];
             // The server is implemented in R
             if (debug) {
                 args = initArgs.concat(["-e", `languageserver::run(port=${port},debug=TRUE)`]);
@@ -77,7 +75,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-        // Register the server for php documents
+        // Register the server for selected R documents
         documentSelector: selector,
         uriConverters: {
             // VS Code by default %-encodes even the colon after the drive letter
@@ -95,7 +93,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
 
     // Create the language client and start the client.
     if (use_stdio && process.platform != "win32") {
-        var args: string[];
+        let args: string[];
         if (debug) {
             args = initArgs.concat(["-e", `languageserver::run(debug=TRUE)`]);
         } else {
