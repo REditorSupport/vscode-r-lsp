@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.9
+
+- Fix stdio mode under Linux and macOS ([#50](https://github.com/REditorSupport/vscode-r-lsp/pull/50))
+
 ## 0.1.8
 
 - Fix settings synchronization to allow disabling diagnostics ([#47](https://github.com/REditorSupport/vscode-r-lsp/pull/47))
