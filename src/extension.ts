@@ -7,6 +7,8 @@ import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } fro
 import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import { getRPath } from './util'
 
+let defaultClient: LanguageClient;
+let externalDocuments: Set<string> = new Set();
 let clients: Map<string, LanguageClient> = new Map();
 
 async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[],
@@ -127,29 +129,20 @@ export function activate(context: ExtensionContext) {
 
         const folder = workspace.getWorkspaceFolder(document.uri);
         if (!folder) {
-
-            // All untitled documents share a server started from home folder
-            if (document.uri.scheme === 'untitled' && !checkClient('untitled')) {
+            
+            if (!defaultClient || defaultClient.needsStart()) {
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'untitled', language: 'r' },
                     { scheme: 'untitled', language: 'rmd' },
+                    { scheme: 'file', language: 'r' },
+                    { scheme: 'file', language: 'rmd' },
                 ];
-                let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
-                client.start();
-                clients.set('untitled', client);
-                return;
+                defaultClient = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
+                defaultClient.start();
             }
 
-            // Each file outside workspace uses a server started from parent folder
-            if (document.uri.scheme === 'file' && !checkClient(document.uri.toString())) {
-                const documentSelector: DocumentFilter[] = [
-                    { scheme: 'file', pattern: document.uri.fsPath },
-                ];
-                let client = await createClient(config, documentSelector,
-                    path.dirname(document.uri.fsPath), undefined, outputChannel);
-                client.start();
-                clients.set(document.uri.toString(), client);
-                return;
+            if (document.uri.scheme === 'file') {
+                externalDocuments.add(document.uri.fsPath);
             }
 
             return;
@@ -169,10 +162,8 @@ export function activate(context: ExtensionContext) {
     }
 
     async function didCloseTextDocument(document: TextDocument) {
-        let client = clients.get(document.uri.toString());
-        if (client) {
-            clients.delete(document.uri.toString());
-            client.stop();
+        if (document.uri.scheme === 'file') {
+            externalDocuments.delete(document.uri.fsPath);
         }
     }
 
@@ -192,6 +183,9 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate(): Thenable<void> {
     let promises: Thenable<void>[] = [];
+    if (defaultClient) {
+        promises.push(defaultClient.stop());
+    }
     for (let client of clients.values()) {
         promises.push(client.stop());
     }
