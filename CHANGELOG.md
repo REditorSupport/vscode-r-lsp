@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.10
+
+- Fix multiple language server/clients created for a single workspace ([#53](https://github.com/REditorSupport/vscode-r-lsp/issues/53))
+
 ## 0.1.9
 
 - Fix stdio mode under Linux and macOS ([#50](https://github.com/REditorSupport/vscode-r-lsp/pull/50))
