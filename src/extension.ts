@@ -8,6 +8,7 @@ import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration,
 import { getRPath } from './util'
 
 let clients: Map<string, LanguageClient> = new Map();
+let initSet: Set<string> = new Set();
 
 async function createClient(config: WorkspaceConfiguration, selector: DocumentFilter[],
     cwd: string, workspaceFolder: WorkspaceFolder, outputChannel: OutputChannel): Promise<LanguageClient> {
@@ -107,6 +108,8 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
 }
 
 function checkClient(name: string): boolean {
+    if (initSet.has(name)) return true;
+    initSet.add(name);
     let client = clients.get(name);
     return client && client.needsStop();
 }
@@ -137,6 +140,7 @@ export function activate(context: ExtensionContext) {
                 let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
                 client.start();
                 clients.set('untitled', client);
+                initSet.delete('untitled');
                 return;
             }
 
@@ -149,6 +153,7 @@ export function activate(context: ExtensionContext) {
                     path.dirname(document.uri.fsPath), undefined, outputChannel);
                 client.start();
                 clients.set(document.uri.toString(), client);
+                initSet.delete(document.uri.toString());
                 return;
             }
 
@@ -165,6 +170,7 @@ export function activate(context: ExtensionContext) {
             let client = await createClient(config, documentSelector, folder.uri.fsPath, folder, outputChannel);
             client.start();
             clients.set(folder.uri.toString(), client);
+            initSet.delete(folder.uri.toString());
         }
     }
 
