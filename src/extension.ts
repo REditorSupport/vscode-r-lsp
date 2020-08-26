@@ -153,7 +153,6 @@ export function activate(context: ExtensionContext) {
                 client.start();
                 clients.set(key, client);
                 initSet.delete(key);
-                return;
             }
 
             return;
