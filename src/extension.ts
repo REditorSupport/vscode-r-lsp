@@ -120,7 +120,7 @@ export function activate(context: ExtensionContext) {
     const outputChannel: OutputChannel = window.createOutputChannel('R Language Server');
 
     async function didOpenTextDocument(document: TextDocument) {
-        if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled') {
+        if (document.uri.scheme !== 'file' && document.uri.scheme !== 'untitled' && document.uri.scheme !== 'vscode-notebook-cell') {
             return;
         }
 
@@ -129,6 +129,23 @@ export function activate(context: ExtensionContext) {
         }
 
         const folder = workspace.getWorkspaceFolder(document.uri);
+        
+        if (document.uri.scheme === 'vscode-notebook-cell') {
+            if (!checkClient(document.uri.fsPath)) {
+                const documentSelector: DocumentFilter[] = [
+                    { scheme: 'vscode-notebook-cell', language: 'r', pattern: `${document.uri.fsPath}*` },
+                ];
+                let client = await createClient(config, documentSelector,
+                    path.dirname(document.uri.fsPath), folder, outputChannel);
+                client.start();
+                clients.set(document.uri.fsPath, client);
+                initSet.delete(document.uri.fsPath);
+                return;
+            }
+
+            return;
+        }
+
         if (!folder) {
 
             // All untitled documents share a server started from home folder
@@ -175,9 +192,15 @@ export function activate(context: ExtensionContext) {
     }
 
     async function didCloseTextDocument(document: TextDocument) {
-        let client = clients.get(document.uri.toString());
+        let key: string;
+        if (document.uri.scheme === 'vscode-notebook-cell') {
+            key = document.uri.fsPath;
+        } else {
+            key = document.uri.toString();
+        }
+        let client = clients.get(key);
         if (client) {
-            clients.delete(document.uri.toString());
+            clients.delete(key);
             client.stop();
         }
     }
