@@ -146,7 +146,7 @@ export function activate(context: ExtensionContext) {
             const key = getKey(document.uri);
             if (!checkClient(key)) {
                 const documentSelector: DocumentFilter[] = [
-                    { scheme: 'vscode-notebook-cell', language: 'r', pattern: `${document.uri.fsPath}*` },
+                    { scheme: 'vscode-notebook-cell', language: 'r', pattern: `${document.uri.fsPath}` },
                 ];
                 let client = await createClient(config, documentSelector,
                     path.dirname(document.uri.fsPath), folder, outputChannel);
