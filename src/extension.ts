@@ -222,7 +222,8 @@ export function activate(context: ExtensionContext) {
         }
 
         if (document.uri.scheme === 'vscode-notebook-cell') {
-            const result = workspace.textDocuments.find((doc) => doc.uri.fsPath === document.uri.fsPath);
+            const result = workspace.textDocuments.find((doc) =>
+                doc.uri.scheme === document.uri.scheme && doc.uri.fsPath === document.uri.fsPath);
             if (result) {
                 // Stop the language server when all cell documents are closed (notebook closed).
                 return;
