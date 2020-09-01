@@ -58,9 +58,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
             const childProcess = spawn(path, args, options);
             client.outputChannel.appendLine(`R Language Server (${childProcess.pid}) started`);
             childProcess.stderr.on('data', (chunk: Buffer) => {
-                const str = chunk.toString();
-                console.log(`R Language Server (${childProcess.pid}): ${str}`);
-                client.outputChannel.appendLine(str);
+                client.outputChannel.appendLine(chunk.toString());
             });
             childProcess.on('exit', (code, signal) => {
                 client.outputChannel.appendLine(`R Language Server (${childProcess.pid}) exited ` +
