@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.1.11
+
+- Support notebook cells ([#59](https://github.com/REditorSupport/vscode-r-lsp/pull/59))
+- Closing all untitled documents will shutdown the shared language server.
+- Fix a bug that prevents the extension from starting a new language server for untitled document.
+
 ## 0.1.10
 
 - Fix multiple language server/clients created for a single workspace ([#53](https://github.com/REditorSupport/vscode-r-lsp/issues/53))
