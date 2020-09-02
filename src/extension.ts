@@ -3,7 +3,7 @@ import path = require('path');
 import net = require('net');
 import url = require('url');
 import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter, ErrorAction, CloseAction } from 'vscode-languageclient';
 import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import { getRPath } from './util'
 
@@ -87,6 +87,10 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
         synchronize: {
             // Synchronize the setting section 'r' to the server
             configurationSection: 'r.lsp',
+        },
+        errorHandler: {
+            error: () => ErrorAction.Shutdown,
+            closed: () => CloseAction.DoNotRestart,
         },
     };
 
