@@ -150,9 +150,8 @@ export function activate(context: ExtensionContext) {
                     path.dirname(document.uri.fsPath), folder, outputChannel);
                 client.start();
                 clients.set(key, client);
-                initSet.delete(key);
             }
-
+            initSet.delete(key);
             return;
         }
 
@@ -169,8 +168,8 @@ export function activate(context: ExtensionContext) {
                 let client = await createClient(config, documentSelector, folder.uri.fsPath, folder, outputChannel);
                 client.start();
                 clients.set(key, client);
-                initSet.delete(key);
             }
+            initSet.delete(key);
 
         } else {
 
@@ -185,8 +184,8 @@ export function activate(context: ExtensionContext) {
                     let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
                     client.start();
                     clients.set(key, client);
-                    initSet.delete(key);
                 }
+                initSet.delete(key);
 
                 return;
             }
@@ -202,8 +201,8 @@ export function activate(context: ExtensionContext) {
                         path.dirname(document.uri.fsPath), undefined, outputChannel);
                     client.start();
                     clients.set(key, client);
-                    initSet.delete(key);
                 }
+                initSet.delete(key);
 
                 return;
             }
@@ -233,6 +232,7 @@ export function activate(context: ExtensionContext) {
         let client = clients.get(key);
         if (client) {
             clients.delete(key);
+            initSet.delete(key);
             client.stop();
         }
     }
@@ -246,6 +246,7 @@ export function activate(context: ExtensionContext) {
             let client = clients.get(key);
             if (client) {
                 clients.delete(key);
+                initSet.delete(key);
                 client.stop()
             }
         }
