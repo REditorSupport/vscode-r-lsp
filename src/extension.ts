@@ -147,6 +147,7 @@ export function activate(context: ExtensionContext) {
         if (document.uri.scheme === 'vscode-notebook-cell') {
             const key = getKey(document.uri);
             if (!checkClient(key)) {
+                console.log(`Start language server for ${document.uri.toString()}`);
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'vscode-notebook-cell', language: 'r', pattern: `${document.uri.fsPath}` },
                 ];
@@ -154,8 +155,8 @@ export function activate(context: ExtensionContext) {
                     path.dirname(document.uri.fsPath), folder, outputChannel);
                 client.start();
                 clients.set(key, client);
+                initSet.delete(key);
             }
-            initSet.delete(key);
             return;
         }
 
@@ -164,6 +165,7 @@ export function activate(context: ExtensionContext) {
             // Each workspace uses a server started from the workspace folder
             const key = getKey(folder.uri);
             if (!checkClient(key)) {
+                console.log(`Start language server for ${document.uri.toString()}`);
                 const pattern = `${folder.uri.fsPath}/**/*`;
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'file', language: 'r', pattern: pattern },
@@ -172,8 +174,8 @@ export function activate(context: ExtensionContext) {
                 let client = await createClient(config, documentSelector, folder.uri.fsPath, folder, outputChannel);
                 client.start();
                 clients.set(key, client);
+                initSet.delete(key);
             }
-            initSet.delete(key);
 
         } else {
 
@@ -181,6 +183,7 @@ export function activate(context: ExtensionContext) {
             if (document.uri.scheme === 'untitled') {
                 const key = getKey(document.uri);
                 if (!checkClient(key)) {
+                    console.log(`Start language server for ${document.uri.toString()}`);
                     const documentSelector: DocumentFilter[] = [
                         { scheme: 'untitled', language: 'r' },
                         { scheme: 'untitled', language: 'rmd' },
@@ -188,9 +191,8 @@ export function activate(context: ExtensionContext) {
                     let client = await createClient(config, documentSelector, os.homedir(), undefined, outputChannel);
                     client.start();
                     clients.set(key, client);
+                    initSet.delete(key);
                 }
-                initSet.delete(key);
-
                 return;
             }
 
@@ -198,6 +200,7 @@ export function activate(context: ExtensionContext) {
             if (document.uri.scheme === 'file') {
                 const key = getKey(document.uri);
                 if (!checkClient(key)) {
+                    console.log(`Start language server for ${document.uri.toString()}`);
                     const documentSelector: DocumentFilter[] = [
                         { scheme: 'file', pattern: document.uri.fsPath },
                     ];
@@ -205,9 +208,8 @@ export function activate(context: ExtensionContext) {
                         path.dirname(document.uri.fsPath), undefined, outputChannel);
                     client.start();
                     clients.set(key, client);
+                    initSet.delete(key);
                 }
-                initSet.delete(key);
-
                 return;
             }
         }
