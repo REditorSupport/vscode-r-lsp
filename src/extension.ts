@@ -3,7 +3,7 @@ import path = require('path');
 import net = require('net');
 import url = require('url');
 import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter, ErrorAction, CloseAction } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter, ErrorAction, CloseAction, RevealOutputChannelOn } from 'vscode-languageclient';
 import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import { getRPath } from './util'
 
@@ -88,6 +88,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
             // Synchronize the setting section 'r' to the server
             configurationSection: 'r.lsp',
         },
+        revealOutputChannelOn: RevealOutputChannelOn.Never,
         errorHandler: {
             error: () => ErrorAction.Shutdown,
             closed: () => CloseAction.DoNotRestart,
@@ -102,9 +103,9 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
         } else {
             args = initArgs.concat(["-e", `languageserver::run()`]);
         }
-        client = new LanguageClient('R Language Server', { command: path, args: args, options: options }, clientOptions);
+        client = new LanguageClient('r', 'R Language Server', { command: path, args: args, options: options }, clientOptions);
     } else {
-        client = new LanguageClient('R Language Server', tcpServerOptions, clientOptions);
+        client = new LanguageClient('r', 'R Language Server', tcpServerOptions, clientOptions);
     }
     return client;
 }
