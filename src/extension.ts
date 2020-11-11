@@ -220,7 +220,7 @@ export function activate(context: ExtensionContext) {
         if (document.uri.scheme === 'untitled') {
             const result = workspace.textDocuments.find((doc) => doc.uri.scheme === 'untitled');
             if (result) {
-                // Stop the langauge server when all untitled documents are closed.
+                // Stop the language server when all untitled documents are closed.
                 return;
             }
         }
