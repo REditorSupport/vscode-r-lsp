@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.12
+
+- Use shared settings for R path ([#64](https://github.com/REditorSupport/vscode-r-lsp/pull/64))
+
 ## 0.1.11
 
 - Support notebook cells ([#59](https://github.com/REditorSupport/vscode-r-lsp/pull/59))
