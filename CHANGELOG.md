@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.13
+
+- Update dependencies (using `vscode-languageclient` v6.1.4).
+
 ## 0.1.12
 
 - Use shared settings for R path ([#64](https://github.com/REditorSupport/vscode-r-lsp/pull/64))
