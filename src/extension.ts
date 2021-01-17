@@ -3,7 +3,7 @@ import path = require('path');
 import net = require('net');
 import url = require('url');
 import { spawn, ChildProcess } from 'child_process';
-import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter, ErrorAction, CloseAction, RevealOutputChannelOn } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, StreamInfo, DocumentFilter, ErrorAction, CloseAction, RevealOutputChannelOn } from 'vscode-languageclient/node';
 import { ExtensionContext, workspace, Uri, TextDocument, WorkspaceConfiguration, OutputChannel, window, WorkspaceFolder } from 'vscode';
 import { getRPath } from './util'
 
@@ -41,6 +41,10 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
             console.log('R process connected');
             socket.on('end', () => {
                 console.log('R process disconnected');
+            });
+            socket.on('error', (e) => {
+                console.log(`R process error: ${e}`);
+                reject(e);
             });
             server.close();
             resolve({ reader: socket, writer: socket });

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.14
+
+- Update dependencies (using `vscode-languageclient` v7.0.0).
+
 ## 0.1.13
 
 - Update dependencies (using `vscode-languageclient` v6.1.4).
