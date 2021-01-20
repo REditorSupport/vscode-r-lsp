@@ -83,7 +83,7 @@ async function createClient(config: WorkspaceConfiguration, selector: DocumentFi
         uriConverters: {
             // VS Code by default %-encodes even the colon after the drive letter
             // NodeJS handles it much better
-            code2Protocol: uri => url.format(url.parse(uri.toString(true))),
+            code2Protocol: uri => new url.URL(uri.toString(true)).toString(),
             protocol2Code: str => Uri.parse(str)
         },
         workspaceFolder: workspaceFolder,
