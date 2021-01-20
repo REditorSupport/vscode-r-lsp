@@ -128,7 +128,7 @@ function getKey(uri: Uri) {
         case 'vscode-notebook-cell':
             return `vscode-notebook:${uri.fsPath}`;
         default:
-            return uri.toString();
+            return uri.toString(true);
     }
 }
 
@@ -152,7 +152,7 @@ export function activate(context: ExtensionContext) {
         if (document.uri.scheme === 'vscode-notebook-cell') {
             const key = getKey(document.uri);
             if (!checkClient(key)) {
-                console.log(`Start language server for ${document.uri.toString()}`);
+                console.log(`Start language server for ${document.uri.toString(true)}`);
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'vscode-notebook-cell', language: 'r', pattern: `${document.uri.fsPath}` },
                 ];
@@ -170,7 +170,7 @@ export function activate(context: ExtensionContext) {
             // Each workspace uses a server started from the workspace folder
             const key = getKey(folder.uri);
             if (!checkClient(key)) {
-                console.log(`Start language server for ${document.uri.toString()}`);
+                console.log(`Start language server for ${document.uri.toString(true)}`);
                 const pattern = `${folder.uri.fsPath}/**/*`;
                 const documentSelector: DocumentFilter[] = [
                     { scheme: 'file', language: 'r', pattern: pattern },
@@ -188,7 +188,7 @@ export function activate(context: ExtensionContext) {
             if (document.uri.scheme === 'untitled') {
                 const key = getKey(document.uri);
                 if (!checkClient(key)) {
-                    console.log(`Start language server for ${document.uri.toString()}`);
+                    console.log(`Start language server for ${document.uri.toString(true)}`);
                     const documentSelector: DocumentFilter[] = [
                         { scheme: 'untitled', language: 'r' },
                         { scheme: 'untitled', language: 'rmd' },
@@ -205,7 +205,7 @@ export function activate(context: ExtensionContext) {
             if (document.uri.scheme === 'file') {
                 const key = getKey(document.uri);
                 if (!checkClient(key)) {
-                    console.log(`Start language server for ${document.uri.toString()}`);
+                    console.log(`Start language server for ${document.uri.toString(true)}`);
                     const documentSelector: DocumentFilter[] = [
                         { scheme: 'file', pattern: document.uri.fsPath },
                     ];
