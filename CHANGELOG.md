@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.15
+
+- Prefer R Path from `PATH` ([#74](https://github.com/REditorSupport/vscode-r-lsp/pull/74))
+
 ## 0.1.14
 
 - Update dependencies (using `vscode-languageclient` v7.0.0).
