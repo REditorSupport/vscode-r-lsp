@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.16
+
+- Watch all R files in workspace ([#78](https://github.com/REditorSupport/vscode-r-lsp/pull/78))
+
 ## 0.1.15
 
 - Prefer R Path from `PATH` ([#74](https://github.com/REditorSupport/vscode-r-lsp/pull/74))
