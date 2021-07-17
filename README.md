@@ -1,5 +1,8 @@
 # R LSP Client
 
+**⚠️ This extension will be merged into [vscode-R](https://github.com/REditorSupport/vscode-R)
+and will be unpublished in the VS Code marketplace at some point. Before installing the new version of vscode-R with language service support, please uninstall this extension to avoid conflict.**
+
 R LSP Client for [VS Code](https://code.visualstudio.com/), powered by the [R Language Server](https://github.com/REditorSupport/languageserver).
 
 This package exposes the following configuration options:
